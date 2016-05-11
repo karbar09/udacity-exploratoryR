@@ -1,0 +1,6 @@
+1. ggplot maps: http://www.ling.ohio-state.edu/~kweatherholtz/ggplot_tutorial/ggplot_ling_tutorial.html#(102)
+2. ggplot maps: http://www.r-bloggers.com/mapping-with-ggplot-create-a-nice-choropleth-map-in-r/
+3. Prosper Lending States: http://www.lendingmemo.com/lending-club-and-prosper-states/
+4. ggplot docs: http://docs.ggplot2.org/
+5. ggplot without axes/legends: http://stackoverflow.com/questions/6528180/ggplot2-plot-without-axes-legends-etc
+
