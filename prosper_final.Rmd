@@ -15,6 +15,7 @@ library(reshape2)
 # Load the Data
 df <- read.csv('prosperLoanData.csv')
 ```
+
 #Univariate Plots Section
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE,Univariate_Plots}
@@ -29,22 +30,28 @@ ggplot(df,aes(x=LoanStatus)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 summary(df$LoanStatus)
 ```
+
 50% of loans, 56576 are Current. Interested in knowing how many are "Active" and how many are "Closed".
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 #creating a new variable that captures if a loan is current or closed.
 df$isActive = df$ClosedDate== ""
-ggplot(df,aes(isActive)) + geom_bar(aes(y=..count../sum(..count..)))
+ggplot(df,aes(isActive)) + 
+  geom_bar(aes(y=..count../sum(..count..)))
 ```
+
 ~51.6% of loans are active, meaning they are not Charged Off, Cancelled, Defaulted, and Completed. 
 
 For a typical closed loan, how long from Origination to Closed?
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 #Create a new variable: Days from Origination to Closed
-df$AgeYears <- time_length(as.period(interval(ymd_hms(df$LoanOriginationDate),ymd_hms(df$ClosedDate))),'years')
+df$AgeYears <- time_length(
+  as.period(interval(ymd_hms(df$LoanOriginationDate),ymd_hms(df$ClosedDate))),
+  'years')
 summary(df$AgeYears)
-ggplot(df,aes(AgeYears)) + geom_density()
+ggplot(df,aes(AgeYears)) + 
+  geom_density()
 subset(df,AgeYears < 0)[,c(1,3,7,65,length(df))]
 ```
 
@@ -53,7 +60,8 @@ Quick note: 2 loans have ages below 0. This is not an issue with the age calcula
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 summary(subset(df,AgeYears >= 0)$AgeYears)
-ggplot(subset(df,AgeYears >= 0),aes(AgeYears)) + geom_density()
+ggplot(subset(df,AgeYears >= 0),aes(AgeYears)) + 
+  geom_density()
 ```
 
 It would be interesting to know how these ages vary for different loan statuses (for example, how quickly are loans cancelled?!), and different loan terms. In fact, let's examine the loan counts by the term.
@@ -62,6 +70,7 @@ It would be interesting to know how these ages vary for different loan statuses 
 summary(df$Term)
 prop.table(table(df$Term))
 ```
+
 - 77.0% of loans are for a 3 year, or 36 month, term. 
 - 21.5% of loans are 60 months, or 5 year
 - 1.4% of loans are 12 months, or 1 year.
@@ -71,10 +80,15 @@ Another interesting set of dates to compare is ListingCreationDate and LoanOrigi
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 print("Average Days")
 #Create a new variable: Days from Listing to Origination
-df$AgeDaysToOrigination <- time_length(as.period(interval(ymd_hms(df$ListingCreationDate),ymd_hms(df$LoanOriginationDate))),'days')
+df$AgeDaysToOrigination <- time_length(
+  as.period(interval(ymd_hms(df$ListingCreationDate),ymd_hms(df$LoanOriginationDate))),
+  'days')
 summary(df$AgeDaysToOrigination)
-ggplot(df,aes(AgeDaysToOrigination)) + geom_density()
-ggplot(df,aes(AgeDaysToOrigination)) + geom_density() + xlim(c(0,25))
+ggplot(df,aes(AgeDaysToOrigination)) + 
+  geom_density()
+ggplot(df,aes(AgeDaysToOrigination)) + 
+  geom_density() + 
+  xlim(c(0,25))
 quantile(df$AgeDaysToOrigination,c(.2,.4,.6,.8,.9,.95))
 ```
 
@@ -85,11 +99,16 @@ Moving on, let's see what are the major listing categories for borrowers who's l
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 #Converted this variable to a factor with labels
 df$ListingCategory..numeric. = factor(df$ListingCategory..numeric.,
-                                      levels = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20),
-                                      labels = c("Not Available","Debt Consolidation","Home Improvement","Business","Personal Loan","Student Use","Auto","Other","Baby&Adoption","Boat","Cosmetic Procedures","Engagement Ring","Green Loans","Household Expenses","Large Purchases","Medical/Dental","Motorcycle","RV","Taxes","Vacation","Wedding Loans"))
+                                      levels = seq(0,20),
+                                      labels = c("Not Available","Debt Consolidation","Home Improvement","Business","Personal Loan",
+                                                 "Student Use","Auto","Other","Baby&Adoption","Boat","Cosmetic Procedures",
+                                                 "Engagement Ring","Green Loans","Household Expenses","Large Purchases",
+                                                 "Medical/Dental","Motorcycle","RV","Taxes","Vacation","Wedding Loans"))
 table(df$ListingCategory..numeric.)
 prop.table(table(df$ListingCategory..numeric.))
-ggplot(df,aes(ListingCategory..numeric.)) + geom_bar() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+ggplot(df,aes(ListingCategory..numeric.)) + 
+  geom_bar() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
 For nearly 24% of loans, a listing category is Not Available (15%) or Other (9%). Top three categories besides these are:
@@ -100,12 +119,16 @@ For nearly 24% of loans, a listing category is Not Available (15%) or Other (9%)
 
 I am surpised that Home Improvement is so high on this list - this would seem more like a luxury loan. But perhaps the borrowers that apply for this loan show credit/income conducive to being able to pay this off easily. Finally, it's pretty interesting to see categories like Taxes/Vacation/Wedding Loans/Engagement Ring (although they only account for <4% of originated loans)
 
-Let's see a distribution of the loan sizes
+Let's see a distribution of the loan sizes:
+
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 summary(df$LoanOriginalAmount)
-ggplot(df,aes(LoanOriginalAmount)) + geom_density()
-ggplot(df,aes(LoanOriginalAmount)) + geom_bar() 
+ggplot(df,aes(LoanOriginalAmount)) + 
+  geom_density()
+ggplot(df,aes(LoanOriginalAmount)) + 
+  geom_bar() 
 ```
+
 The minimum loan size is $1,000 and the maximum loan origination amount is $35,000. 
 Seems like the most popular loan sizes in descending order are:
 - $5,000
@@ -118,18 +141,11 @@ Let's see where our borrowers are usually from.
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 
-ggplot(df, aes(reorder(BorrowerState, -table(BorrowerState)[BorrowerState]))) + geom_bar()
+ggplot(df, aes(reorder(BorrowerState, -table(BorrowerState)[BorrowerState]))) + 
+  geom_bar() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-df_state_count <- summarize(group_by(df,BorrowerState),
-          count = length(BorrowerState))
 
-df_state_count$BorrowerStateFull <- tolower(state.name[match(df_state_count$BorrowerState, state.abb)])
-states <- map_data("state")
-states$region <- tolower(states$region)
-df_state_count <- merge(df_state_count,states,by.x = "BorrowerStateFull",by.y = "region")
-ggplot(df_state_count,aes(long,lat)) + 
-  geom_polygon(aes(group = group,fill=count))+
-  coord_map("albers",  at0 = 45.5, lat1 = 29.5)
 ```
 
 It's easy to see that California is the home state for a majority of borrowers. 
@@ -140,18 +156,9 @@ It's easy to see that California is the home state for a majority of borrowers.
 Let's see some more borrower information: Occupation, EmploymentStatus, EmploymentStatusDuration, IsBorrowerHomeowner
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
-ggplot(df, aes(reorder(Occupation, -table(Occupation)[Occupation]))) + 
+ggplot(df, aes(reorder(Occupation, -table(Occupation)[Occupation]))) +
   geom_bar() + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
-prop.table(table(df$Occupation))
-table(df$EmploymentStatus)
-prop.table(table(df$EmploymentStatus))
-
-summary(df$EmploymentStatusDuration)
-ggplot(df, aes(EmploymentStatusDuration)) + 
-  geom_bar(binwidth=6) + ggtitle("Binwidth = 6 months")
-
-prop.table(table(df$IsBorrowerHomeowner))
 
 ```
 
@@ -174,17 +181,48 @@ It's interesting that Prosper has **7** different categories for Students: [Type
 
 College Juniors/Seniors/Graduate students to be the highest count of loan originations. Freshman/Sophomore students, community college and technical school students have a smaller percentage of the loans. With the current data, we cannot say if this is because of the number of applications, or Prospers loan acceptance process. However, we can check later about which occupations have the best/worst default rates.
 
+```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
+
+table(df$EmploymentStatus)
+prop.table(table(df$EmploymentStatus))
+
+summary(df$EmploymentStatusDuration)
+ggplot(df, aes(EmploymentStatusDuration)) + 
+  geom_bar(binwidth=6) + 
+  ggtitle("Binwidth = 6 months")
+
+prop.table(table(df$IsBorrowerHomeowner))
+
+```
+
 Most borrowers are Employed (60%) or Full-Time (23%). <1% for each of the following Not employed/Part-Time/Retired. This is consistent with what I expect.
+
+```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
+
+summary(df$EmploymentStatusDuration)
+ggplot(df, aes(EmploymentStatusDuration)) + 
+  geom_bar(binwidth=6) + 
+  ggtitle("Binwidth = 6 months")
+
+prop.table(table(df$IsBorrowerHomeowner))
+
+```
 
 Borrowers for >7000 loans have been employed for less than 6 months in their current job. So, although it seems many loans don't go to students, borrowers that are relatively new (<6 months) to their job constitute most of the loans. This is a right skewed distribution.
 
+```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
+
+prop.table(table(df$IsBorrowerHomeowner))
+
+```
+
 49.5% of borrowers are homeowners. I would guess that disproportionately large percentage of borrowers doing home improvement are home owners (can check this later)!
 
-let's take a look at a borrowers credit score and utilization
+let's take a look at a borrowers credit score and utilization:
+
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 #Create new variable credit range
 df$CreditRange <- paste(df$CreditScoreRangeLower,"_",df$CreditScoreRangeUpper)
-prop.table(table(df$CreditRange))*100
 ggplot(df, aes(reorder(CreditRange, -table(CreditRange)[CreditRange]))) + 
   geom_bar() + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
@@ -192,26 +230,27 @@ dim(subset(df,CreditScoreRangeUpper <600 | is.na(CreditScoreRangeUpper)))[1]/dim
 
 #credit utilization
 summary(df$BankcardUtilization)
-summary(df$RevolvingCreditBalance)
 
 ggplot(df,aes(BankcardUtilization)) + geom_density() + xlim(c(0,1))
 
 ```
+
 Most originated loans go to borrowers with credit scores between 640 and 740.
 660 - 700 range constitutes about 28% of loans.
 6% of loans are to borrowers with credit below 600 or no credit rating at all. 
 
-50% of borrowers have a utilization between .3 and .84. Median BankcardUtilization is around .6.  That means, at the time the credit profile was pulled, around 60% of available credit was being used by the median borrower. 7% (7604) of loans had a value of NA for BankcardUtilization/RevolvingCreditBalance. A possible explanation for this is that 7% of originated loans are for borrowers with no credit card at the time of applying for the loan. It's a very interesting distribution, as there are peaks around 0, and 1, and a long tail after 1 (for people who's utilization is more than their available credit). 
+50% of borrowers have a utilization between .3 and .84. Median BankcardUtilization is around .6.  That means, at the time the credit profile was pulled, around 60% of available credit was being used by the median borrower. 7% (7604) of loans had a value of NA for BankcardUtilization. A possible explanation for this is that 7% of originated loans are for borrowers with no credit card at the time of applying for the loan. It's a very interesting distribution, as there are peaks around 0, and 1, and a long tail after 1 (for people who's utilization is more than their available credit). 
 
-I wonder how much the typical prosper borrower earns?
+I wonder how much the typical prosper borrower earns, and what percentage are income verifiable?
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
-ggplot(df,aes(IncomeRange)) + geom_bar()
-summary(df$IncomeRange)
+ggplot(df,aes(IncomeRange)) + 
+  geom_bar() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 prop.table(table(df$IncomeVerifiable))
 ```
 
-Most borrowers (56%) in the $25k-$75k annual income. And, 92% of borrowers can prove it. If i'm an investor, its reassuring that the borrower can validate their income source! For those borrowers who's income is Not Displayed (7%)/Not Employed (<1%), I'm surprised they were approved for a loan and that they got funded. 
+Most borrowers (56%) in the $25k-$75k annual income. And, 92% of borrowers can prove it (92% are income verifiable). If i'm an investor, its reassuring that the borrower can validate their income source! For those borrowers who's income is Not Displayed (7%)/Not Employed (<1%), I'm surprised they were approved for a loan and that they got funded. 
 
 Speaking of which, since all of these loans are originated, that means they all got full funded, right?
 
@@ -219,14 +258,17 @@ Speaking of which, since all of these loans are originated, that means they all 
 summary(df$PercentFunded)
 length(subset(df,PercentFunded<1))/dim(df)[1]
 ```
-.07% of loans were not fully funded -- But, seems like every originated loan is at least 70% funded. So, maybe the platform covers the rest? Not sure how this works.
+
+So, every originated loan is at least 70% funded. The top 75% of loans are fully funded. .07% of loans were not fully funded. So, maybe the platform covers the rest? Not sure how this works.
 
 Back to borrower features: what's the typical DebtToIncome ratio for a borrower?
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 #Create new variable credit range
 summary(df$DebtToIncomeRatio)
-ggplot(df,aes(DebtToIncomeRatio)) + geom_bar() + xlim(0,2)
+ggplot(df,aes(DebtToIncomeRatio)) + 
+  geom_bar() + 
+  xlim(0,2)
 
 ```
 
@@ -236,7 +278,8 @@ We may try a log10 transformation of this feature. Since this feature can = 0, w
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 summary(df$DebtToIncomeRatio)
-ggplot(df,aes(log10(DebtToIncomeRatio+1))) + geom_bar()
+ggplot(df,aes(log10(DebtToIncomeRatio+1))) + 
+  geom_bar()
 
 ```
 
@@ -247,8 +290,10 @@ Median/Mean is .22/.276 and 50% of borrowers are between .14 and .32.
 #Create new variable loss rate
 df$LossRate <- df$LP_NetPrincipalLoss/df$LoanOriginalAmount
 summary(subset(df,ClosedDate != "")$LossRate)
-ggplot(df,aes(LossRate)) + geom_bar()
-ggplot(subset(df,ClosedDate != "" & LossRate>0),aes(LossRate)) + geom_bar()
+ggplot(df,aes(LossRate)) + 
+  geom_bar()
+ggplot(subset(df,ClosedDate != "" & LossRate>0),aes(LossRate)) + 
+  geom_bar()
 
 dim(subset(df,LossRate <0 ))[1]
 ```
@@ -315,7 +360,6 @@ Yes:
 5. CreditScoreRange - concat the CreditScoreLower and CreditScoreUpper to create one variable that captures the the CreditScoreRange of the borrower
 6. Loss Rate - LP_NetPrincipalLoss/LoanOriginalAmount - get how much of a loan has been lost on a per loan basis.
 
-
 ###Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
 
 Yes:
@@ -323,26 +367,27 @@ Yes:
 - BankcardUtilization's density plot shows a bimodal distribution and a long tail. I did not change this data.
 - I did a Log10 transform to the DebtToIncomeRatio distribution because it was heavily right skewed by a few individuals that have >1000% ratio. 
 
-
 #Bivariate Plots Section
 
 Let's start out with the 2 features of interest -- Prosper's Score and the LoanStatus.
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE,Bivariate_Plots}
 #Reorder levels of ProsperRating.
-df$ProsperRating..Alpha. <- factor(df$ProsperRating..Alpha.,levels(df$ProsperRating..Alpha.)[c(3,2,4:8,1)])
-table(df$ProsperRating..Alpha.)
-ggplot(df,aes(LoanStatus)) + geom_bar() + facet_wrap(~ProsperRating..Alpha.) + 
+df$ProsperRating..Alpha. <- factor(
+  df$ProsperRating..Alpha.,levels(df$ProsperRating..Alpha.)[c(3,2,4:8,1)])
+ggplot(df,aes(LoanStatus)) + 
+  geom_bar() + 
+  facet_wrap(~ProsperRating..Alpha.) + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 ```
 
-Okay, the bottom right plot shows that there's a bunch of loans with no Proser Rating. So, prosper introduced this score July 2009. Therefore, 29084 loans have no "prosper rating". We may see the CreditGrade for the rating that these scores were given.
+Okay, the bottom right plot shows that there's a bunch of loans with no Proser Rating. So, prosper introduced this score July 2009. Therefore, all  loans before this time have no "prosper rating". We may how many loans have no prosper rating, and also see the CreditGrade for these pre-july 2009 loans.
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 #Reorder levels of CreditGrade
 df$CreditGrade <- factor(df$CreditGrade,levels(df$CreditGrade)[c(3,2,4:9,1)])
-prop.table(table(df$CreditGrade))
+table(df$CreditGrade)
 summarise(group_by(df,CreditGrade),
           lower = min(CreditScoreRangeLower,na.rm = TRUE),
           upper = max(CreditScoreRangeUpper,na.rm=TRUE),
@@ -352,11 +397,12 @@ summarise(group_by(df,CreditGrade),
 
 two interesting things to note here:
 
-- Prosper used to use a CreditGrade that looks like it was entirely based on the Credit Score of the borrower. In the table above, there are no overlaps between credit intervals. Here's a plot that shows this:
+- the first table shows that 29,084 loans have no prosper rating. 84,984 loans have no CreditGrade (and therefore have a prosper rating)
+- the second table shows that Prosper used to use a CreditGrade that looks like it was entirely based on the Credit Score of the borrower. In the **table** above, there are no overlaps between credit intervals. Here's a plot that shows this:
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 #Reorder levels of CreditGrade
-ggplot(subset(df,CreditGrade != ""),aes(CreditRange,fill=CreditGrade)) + 
+ggplot(subset(df,CreditGrade != ""),aes(CreditRange,fill=CreditGrade)) +
   geom_bar() + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
@@ -365,6 +411,7 @@ ggplot(subset(df,CreditGrade != ""),aes(CreditRange,fill=CreditGrade)) +
 So, for borrowers with a credit score range (not NA_NA), you can see a clear delineation between CreditGrades based on the CreditScore. This correlation definitely gives a lot of evidence to indicate that up until July 2009, Prosper graded loan applications almost exclusively based on the CreditScore range.
 
 Let's go a step further, how did the previous CreditGrade system fair in terms of defaults?
+
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 #Reorder levels of CreditGrade
 ggplot(subset(df,CreditGrade != ""),aes(CreditGrade,fill=LoanStatus)) + 
@@ -375,11 +422,14 @@ df_prejuly2009_sum <- summarise(group_by(subset(df,CreditGrade != ""),CreditGrad
           total = length(LoanStatus),
           cancelled = round(sum(LoanStatus=="Cancelled")/total,2),
           completed = round(sum(LoanStatus=="Completed")/total,2),
-          chargeoff_or_default = round(sum(LoanStatus %in% c("Chargedoff","Defaulted"))/total,2))
+          chargeoff_or_default = round(
+            sum(LoanStatus %in% c("Chargedoff","Defaulted"))/total,2))
 
 df_prejuly2009_sum
-ggplot(df_prejuly2009_sum,aes(CreditGrade,completed)) + geom_bar(stat='identity') 
-ggplot(df_prejuly2009_sum,aes(CreditGrade,chargeoff_or_default)) + geom_bar(stat='identity') 
+ggplot(df_prejuly2009_sum,aes(CreditGrade,completed)) + 
+  geom_bar(stat='identity') 
+ggplot(df_prejuly2009_sum,aes(CreditGrade,chargeoff_or_default)) + 
+  geom_bar(stat='identity') 
 
 ```
 
@@ -388,24 +438,24 @@ The distribution of completions/defaults across CreditGrade look consistent with
 Okay, so how has the new Prosper Rating done in terms of mitigating defaults for different grades? (We will only consider closed loans). Predicting whether an open loan will be completed/defaulted is a whole other problem itself, and we don't have the right data for it.
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
-#Reorder levels of CreditGrade
-ggplot(subset(df,ClosedDate != "" & ProsperRating..Alpha. != ""),aes(ProsperRating..Alpha.,fill=LoanStatus)) + 
+
+
+ggplot(subset(df,ClosedDate != "" & ProsperRating..Alpha. != ""),
+       aes(ProsperRating..Alpha.,fill=LoanStatus)) + 
   geom_bar() + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-df_postjuly2009_sum <- summarise(group_by(subset(df,ClosedDate != "" & ProsperRating..Alpha. != ""),ProsperRating..Alpha.),
+df_postjuly2009_sum <- summarise(
+  group_by(subset(df,ClosedDate != "" & ProsperRating..Alpha. != ""),
+           ProsperRating..Alpha.),
           total = length(LoanStatus),
           cancelled = round(sum(LoanStatus=="Cancelled")/total,2),
           completed = round(sum(LoanStatus=="Completed")/total,2),
-          chargeoff_or_default = round(sum(LoanStatus %in% c("Chargedoff","Defaulted"))/total,2))
+          chargeoff_or_default = round(
+                        sum(LoanStatus %in% c("Chargedoff","Defaulted"))/total,2))
 
-df_postjuly2009_sum
-
-ggplot(df_postjuly2009_sum,aes(ProsperRating..Alpha.,completed)) + geom_bar(stat='identity') 
-
-#ggplot() + 
-##  geom_bar(df_postjuly2009_sum,aes(ProsperRating..Alpha.,chargeoff_or_default),stat='identity')  + 
-# geom_bar(data = df_prejuly2009_sum,aes(CreditGrade,chargeoff_or_default),stat="identity") 
+ggplot(df_postjuly2009_sum,aes(ProsperRating..Alpha.,completed)) + 
+  geom_bar(stat='identity') 
 
 ```
 
@@ -436,7 +486,8 @@ Let's continue with this loss_per_loan and loss_rate metric, and see how it vari
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 
-loss_across_categories <- summarise(group_by(subset(df,ClosedDate != ""),ListingCategory..numeric.),
+loss_across_categories <- summarise(
+  group_by(subset(df,ClosedDate != ""),ListingCategory..numeric.),
           total = length(LoanStatus),
           total_net_loss = sum(LP_NetPrincipalLoss),
           total_originated = sum(LoanOriginalAmount),
@@ -446,7 +497,6 @@ ggplot(loss_across_categories,aes(ListingCategory..numeric.,loss_rate)) +
   geom_point(stat="identity") + 
   ggtitle("Loss Rate across listings")+ 
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
-
 
 ```
 
@@ -460,7 +510,8 @@ Is credit score a good proxy for understanding who will default? let's take a lo
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 
-loss_by_credit_range <- summarise(group_by(subset(df,ClosedDate != ""),CreditRange),
+loss_by_credit_range <- summarise(
+  group_by(subset(df,ClosedDate != ""),CreditRange),
           total = length(LoanStatus),
           total_net_loss = sum(LP_NetPrincipalLoss),
           total_originated = sum(LoanOriginalAmount),
@@ -471,11 +522,11 @@ ggplot(loss_by_credit_range,aes(CreditRange,loss_rate)) +
   ggtitle("Loss Rate across Credit Range")+ 
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
 
-
 ```
 
 Wow, it's almost linear. I would've expected there to be more variation. So, what would be interesting to see is if the Post July 2009 loans (for which credit grades are assigned using Prospers own metric) are not as correlated with the credit score. This would indicate that prosper has found other data to properly assess risk. 
 Quick aside: What's the difference between Borrower APR and Borrower Rate?
+
 ```{r, echo=FALSE}
 fit <- lm(subset(df,CreditGrade != ""), formula = BorrowerAPR ~ BorrowerRate)
 summary(fit)
@@ -495,23 +546,16 @@ loss_by_state <- summarise(group_by(subset(df,ClosedDate != ""),BorrowerState),
           total_originated = sum(LoanOriginalAmount),
           loss_per_loan = total_net_loss/total,
           loss_rate = total_net_loss/total_originated)
+
 ggplot(loss_by_state,aes(BorrowerState,loss_rate)) + 
-  geom_point(stat="identity") + 
+  geom_bar(stat="identity") + 
   ggtitle("Loss Rate across State")+ 
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
 
-loss_by_state$BorrowerStateFull <- tolower(state.name[match(loss_by_state$BorrowerState, state.abb)])
-states <- map_data("state")
-states$region <- tolower(states$region)
-df_state_count <- merge(loss_by_state,states,by.x = "BorrowerStateFull",by.y = "region")
-ggplot(df_state_count,aes(long,lat)) + 
-  geom_polygon(aes(group = group,fill=loss_rate))+
-  coord_map("albers",  at0 = 45.5, lat1 = 29.5)
-
-ggplot(df_state_count,aes(long,lat)) + 
-  geom_polygon(aes(group = group,fill=total_originated))+
-  coord_map("albers",  at0 = 45.5, lat1 = 29.5)
-
+ggplot(loss_by_state,aes(BorrowerState,total_originated)) + 
+  geom_bar(stat="identity") + 
+  ggtitle("Total Originated across State")+ 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
 
 ```
 
@@ -519,26 +563,34 @@ Wyoming has an exceedingly low loss rate - we can see that their total originate
 California, which originates the highest volumn of loans has a loss rate that is slightly less than 25%.
 
 IsBorrowerHomeowner/IncomeRange
+
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 
-loss_by_is_homeowner <- summarise(group_by(subset(df,ClosedDate != ""),IsBorrowerHomeowner),
+loss_by_is_homeowner <- summarise(
+  group_by(subset(df,ClosedDate != ""),IsBorrowerHomeowner),
           total = length(LoanStatus),
           total_net_loss = sum(LP_NetPrincipalLoss),
           total_originated = sum(LoanOriginalAmount),
           loss_per_loan = total_net_loss/total,
           loss_rate = total_net_loss/total_originated)
+
 ggplot(loss_by_is_homeowner,aes(IsBorrowerHomeowner,loss_rate)) + 
   geom_bar(stat="identity") + 
   ggtitle("Loss Rate across IsHomeowner")+ 
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-df$IncomeRange <- factor(df$IncomeRange,levels(df$IncomeRange)[c(8,1,2,4,5,6,3,7)])
-loss_by_incomeRange <- summarise(group_by(subset(df,ClosedDate != ""),IncomeRange),
+df$IncomeRange <- factor(
+  df$IncomeRange,
+  levels(df$IncomeRange)[c(8,1,2,4,5,6,3,7)])
+
+loss_by_incomeRange <- summarise(
+  group_by(subset(df,ClosedDate != ""),IncomeRange),
           total = length(LoanStatus),
           total_net_loss = sum(LP_NetPrincipalLoss),
           total_originated = sum(LoanOriginalAmount),
           loss_per_loan = total_net_loss/total,
           loss_rate = total_net_loss/total_originated)
+
 ggplot(loss_by_incomeRange,aes(IncomeRange,loss_rate)) + 
   geom_bar(stat="identity") + 
   ggtitle("Loss Rate across Income Range")+ 
@@ -551,18 +603,23 @@ Loss rate doesn't differ too much across IsHomeownerBorrower.
 Loss rate falls as income increases - that is to be expected.
 
 Debt to Income Ratio vs Loss Rate
+
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 
 ggplot(df,aes(DebtToIncomeRatio,LP_NetPrincipalLoss)) + 
   geom_point() 
 
-ggplot(subset(df,ClosedDate != ""),aes(DebtToIncomeRatio,LP_NetPrincipalLoss/LoanOriginalAmount)) + 
+ggplot(subset(df,ClosedDate != ""),
+       aes(DebtToIncomeRatio,LP_NetPrincipalLoss/LoanOriginalAmount)) + 
   geom_point() 
 
-ggplot(subset(df,ClosedDate != ""),aes(log10(DebtToIncomeRatio+1),LP_NetPrincipalLoss/LoanOriginalAmount)) + 
+ggplot(subset(df,ClosedDate != ""),
+       aes(log10(DebtToIncomeRatio+1),LP_NetPrincipalLoss/LoanOriginalAmount)) + 
   geom_point() 
 
-fit <- lm(formula= LP_NetPrincipalLoss/LoanOriginalAmount ~ log10(DebtToIncomeRatio+1),data =subset(df,ClosedDate != "") )
+fit <- lm(
+  formula= LP_NetPrincipalLoss/LoanOriginalAmount ~ log10(DebtToIncomeRatio+1),
+  data =subset(df,ClosedDate != ""))
 
 summary(fit)
 
@@ -571,6 +628,7 @@ summary(fit)
 From the scatter plots, it seems like there is some positive correlation for high enough values of log10(DebtToIncomeRatio+1) and the loss rate. But overall, this explanatory variable does not explain much of the variation in the loss rate. In fact, based on the R^2 value, the DebtToIncomeRatio explains about .5% of the variation in the LP_NetPrincipalLoss/LoanOriginalAmount. That's extremely low. 
 
 What about the Loss Rate across: Loan Size, Term, BorrowerAPR
+
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 
 ggplot(subset(df,ClosedDate != ""),aes(LoanOriginalAmount,LossRate)) + 
@@ -636,7 +694,8 @@ Yes:
 Let's dig further into the Loss Rate's relationship across listing categories weighted by the total volume of loans originated from the listing.
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE,Multivariate_Plots, fig.width=15,fig.height=15,}
-loss_across_categories <- summarise(group_by(subset(df,ClosedDate != ""),ListingCategory..numeric.),
+loss_across_categories <- summarise(
+  group_by(subset(df,ClosedDate != ""),ListingCategory..numeric.),
           total = length(LoanStatus),
           total_net_loss = sum(LP_NetPrincipalLoss),
           total_originated = sum(LoanOriginalAmount),
@@ -649,7 +708,8 @@ ggplot(loss_across_categories,aes(ListingCategory..numeric.,loss_rate)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
   scale_size(range=c(0,10))
 
-loss_across_categories <- summarise(group_by(subset(df,ClosedDate != ""),Term, ListingCategory..numeric.),
+loss_across_categories <- summarise(
+  group_by(subset(df,ClosedDate != ""),Term, ListingCategory..numeric.),
           total = length(LoanStatus),
           total_net_loss = sum(LP_NetPrincipalLoss),
           total_originated = sum(LoanOriginalAmount),
@@ -671,8 +731,10 @@ The first bubble chart shows us the Loss Rate across listings with the bubbles s
 We break this chart up into 3, 1 for each Term size for a loan. It's quite clear that regardless of the listing category, the loss rate seems to increase as the loan term increased. We can see that the loss rates for some categories such as Home Improvement have dramatic leaps as we go from 12->36->60 month loans. Debt Consolidation, the largest "Available" category by loan volume originated, has a Loss Rate that goes from 3% (12 month) -> 18% (36 month) -> 26% (60 month). This trajectory, particularily the increase from 36 month to 60 month, is actually better than the trajectories for Home Improvement/Household Expenses, and many other categories.
 
 Let's consider the loss rate in terms of employment status
+
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE, fig.width=15,fig.height=15,}
-loss_across_employment_status <- summarise(group_by(subset(df,ClosedDate != ""),Term,EmploymentStatus),
+loss_across_employment_status <- summarise(
+  group_by(subset(df,ClosedDate != ""),Term,EmploymentStatus),
           total = length(LoanStatus),
           total_net_loss = sum(LP_NetPrincipalLoss),
           total_originated = sum(LoanOriginalAmount),
@@ -690,8 +752,10 @@ ggplot(loss_across_employment_status,aes(EmploymentStatus,loss_rate)) +
 Once again, independent of employment status, loss rate tends to be higher with longer term loans. 
 
 Let's consider the loss rate in terms of the term and income range
+
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE, fig.width=15,fig.height=15,}
-loss_across_income_range <- summarise(group_by(subset(df,ClosedDate != ""),Term,IncomeRange),
+loss_across_income_range <- summarise(
+  group_by(subset(df,ClosedDate != ""),Term,IncomeRange),
           total = length(LoanStatus),
           total_net_loss = sum(LP_NetPrincipalLoss),
           total_originated = sum(LoanOriginalAmount),
@@ -709,8 +773,10 @@ ggplot(loss_across_income_range,aes(IncomeRange,loss_rate)) +
 For high incomes ($100,000+), the loss rate seems to level out at 36 months at ~22.5%. So, in terms of just the loss rate, Prosper could be indifferent between giving a borrower with an income of $100,000 a loan that lasts 36 months/60 months. This information is important, as prosper can adjust it's sales/fees approach to make the loan product that will be most suitable to 'high-income borrowers'. 
 
 loss rate across term and credit range
+
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE, fig.width=15,fig.height=15,}
-loss_across_credit_range <- summarise(group_by(subset(df,ClosedDate != ""),Term,CreditRange),
+loss_across_credit_range <- summarise(
+  group_by(subset(df,ClosedDate != ""),Term,CreditRange),
           total = length(LoanStatus),
           total_net_loss = sum(LP_NetPrincipalLoss),
           total_originated = sum(LoanOriginalAmount),
@@ -731,7 +797,8 @@ Loss rate increases across terms and decreases within a term across credit range
 Loss rate across credit range and income range
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE, fig.width=15,fig.height=15,}
-loss_across_ci_range <- summarise(group_by(subset(df,ClosedDate != ""),IncomeRange,CreditRange),
+loss_across_ci_range <- summarise(
+  group_by(subset(df,ClosedDate != ""),IncomeRange,CreditRange),
           total = length(LoanStatus),
           total_net_loss = sum(LP_NetPrincipalLoss),
           total_originated = sum(LoanOriginalAmount),
@@ -752,24 +819,86 @@ Loss rate increases across income ranges, and decreases within an income range a
 Finally, let's try a simple model to predict loss rate
 
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
-fit <- lm(LossRate~BorrowerRate+Term+CreditRange+IncomeRange,subset(df,ClosedDate != ""))
+fit <- lm(
+  LossRate~BorrowerRate+Term+CreditRange+IncomeRange,
+  subset(df,ClosedDate != ""))
 summary(fit)
 
 ```
 
 Using the BorrwowerRate, Term, CreditRange, and IncomeRange to predict the unweighted loss rate for closed loans, we can see that 11.59% of the variation in the unweighted loss rate is explained by these factors. There is many more columns yet to be explored and subsequent analysis it would worthwhile to consider these factors and see if they can improve the predictive power of this model.
 
-Will take a detour here and look how much Prosper has changed in various states over time in terms of originations and loss_rate
+##Maps 
+Will take a detour here and examine maps on Prosper in terms of loan count, originations (current and over time), and loss_rate across states.
 
-```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE, fig.width=15,fig.height=15,}
-df$LoanOriginationDateYear <- year(df$LoanOriginationDate)
-originated_by_state <- summarise(group_by(df,BorrowerState,LoanOriginationDateYear),
-          total_originated = sum(LoanOriginalAmount))
+Loan counts in various states
 
-originated_by_state$BorrowerStateFull <- tolower(state.name[match(originated_by_state$BorrowerState, state.abb)])
+```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE, fig.width=15,fig.height=8,}
+
+df_state_count <- summarize(group_by(df,BorrowerState),
+          count = length(BorrowerState))
+
+df_state_count$BorrowerStateFull <- tolower(state.name[
+  match(df_state_count$BorrowerState, state.abb)])
 states <- map_data("state")
 states$region <- tolower(states$region)
-df_state_count <- merge(originated_by_state,states,by.x = "BorrowerStateFull",by.y = "region")
+df_state_count <- merge(df_state_count,states,
+                        by.x = "BorrowerStateFull",
+                        by.y = "region")
+ggplot(df_state_count,aes(long,lat)) + 
+  geom_polygon(aes(group = group,fill=count))+
+  coord_map("albers",  at0 = 45.5, lat1 = 29.5)
+
+```
+
+As indicated earlier, we see california originates the most loans (by count), followed by texas/new york/florida. Let's see how the loss_rate and origination volume differs across states.
+
+```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE, fig.width=15,fig.height=8,}
+
+loss_by_state <- summarise(group_by(subset(df,ClosedDate != ""),BorrowerState),
+          total = length(LoanStatus),
+          total_net_loss = sum(LP_NetPrincipalLoss),
+          total_originated = sum(LoanOriginalAmount),
+          loss_per_loan = total_net_loss/total,
+          loss_rate = total_net_loss/total_originated)
+
+loss_by_state$BorrowerStateFull <- tolower(
+  state.name[match(loss_by_state$BorrowerState, state.abb)])
+states <- map_data("state")
+states$region <- tolower(states$region)
+df_state_count <- merge(loss_by_state,
+                        states,
+                        by.x = "BorrowerStateFull",
+                        by.y = "region")
+
+ggplot(df_state_count,aes(long,lat)) + 
+  geom_polygon(aes(group = group,fill=loss_rate))+
+  coord_map("albers",  at0 = 45.5, lat1 = 29.5)
+
+ggplot(df_state_count,aes(long,lat)) + 
+  geom_polygon(aes(group = group,fill=total_originated))+
+  coord_map("albers",  at0 = 45.5, lat1 = 29.5)
+
+
+```
+
+Again, as indicated previously, we see that wyoming has the lowest loss rate, but perhaps originates relatively low $'s worth of loans. Of the big 4 states (in terms of loan originations); california/texas/new york/florida - it seems that new york has the lowest loss rate. Finally, let's see how the loan originations volume has changed over the years.
+
+```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE, fig.width=15,fig.height=5}
+
+df$LoanOriginationDateYear <- year(df$LoanOriginationDate)
+originated_by_state <- summarise(
+  group_by(df,BorrowerState,LoanOriginationDateYear),
+          total_originated = sum(LoanOriginalAmount))
+
+originated_by_state$BorrowerStateFull <- tolower(
+  state.name[match(originated_by_state$BorrowerState, state.abb)])
+states <- map_data("state")
+states$region <- tolower(states$region)
+df_state_count <- merge(originated_by_state,
+                        states,
+                        by.x = "BorrowerStateFull",
+                        by.y = "region")
 
 ggplot(df_state_count,aes(long,lat)) + 
   geom_polygon(aes(group = group,fill=total_originated))+
@@ -779,7 +908,6 @@ ggplot(df_state_count,aes(long,lat)) +
 ```
 
 Prosper's originations started primarily in its home state of California, and then experienced success in Texas, and many states along the East Coast. Since this data is last updated midway through 2014, the intensity of the 2014 heat map is less than that of 2013 -- but, i suspect that by the close of 2014, there is probably more penetration by Prosper in the various parts of the US market.
-
 
 # Multivariate Analysis
 
@@ -808,7 +936,7 @@ The model could only explain 11.59% of the variation in the LossRate. There are 
 
 ### Plot One
 
-```{r echo=FALSE, Plot_One}
+```{r echo=FALSE, Plot_One,fig.width=10}
 d1 <- summarise(group_by(subset(df,ClosedDate != ""),ProsperRating..Alpha.),
           total = length(LoanStatus),
           total_net_loss = sum(LP_NetPrincipalLoss),
@@ -828,7 +956,8 @@ names(d2)[1] <- "Grade"
 d2$type <- "Pre July 2009"
 d <- rbind(d2,d1)
 d$type <- as.factor(d$type)
-ggplot(subset(d,!Grade %in% c("","NC")),aes(Grade,loss_rate,fill=type,color=type)) + 
+ggplot(subset(d,!Grade %in% c("","NC")),
+       aes(Grade,loss_rate,fill=type,color=type)) + 
   geom_bar(stat="identity",position="dodge")+
   ggtitle("Pre July 2009 and Post July 2009 Loss Rate Across Loan Grades") + 
   xlab("Loan Grade (AA>...>HR, excluding NC) ") + 
@@ -837,19 +966,28 @@ ggplot(subset(d,!Grade %in% c("","NC")),aes(Grade,loss_rate,fill=type,color=type
 
 ### Description One
 
-Change in Loss Rate by CreditGrade/ProsperRating Pre/Post July 2009. We can see that the Loss Rate improves in every grade after the loan grading system changes from the CreditGrade to the ProsperRating.
+The first plot shows grouped bar chart of the Loss Rate by the Loan Grade (variable created from the CreditGrade and ProsperRating), grouped by whether the loan was originated Pre/Post July 2009. This chart helps us understand how, from an investor standpoint, the change in the Prosper rating system affected loss rates from each Loan Grade. 
+
+We can see the expected trends, that loss rate increases as the Loan Grade falls (AA>A>....>HR). This trend holds true for both Pre July 2009 (CreditGrade) loans and Post July 2009 (ProsperRating) loans. Additionally, and more importantly, holding the Loan Grade constant, there is at least a 5% improvement in loss rate across all Loan Grades. With the new rating:
+
+- AA/A/B/HR improve 10%-15% in loss rate
+- C/D/E grades improve 5%-10% in loss rate
+
+So, this kind of plot shows that loss rates fall for each Loan Grade in the new rating system, and should therefore improve investor confidence in prosper's underwriting models.
 
 ### Plot Two
 
-```{r echo=FALSE, Plot_Two}
-loss_across_income_range <- summarise(group_by(subset(df,ClosedDate != ""),Term,IncomeRange),
+```{r echo=FALSE, Plot_Two,fig.width=10}
+loss_across_income_range <- summarise(
+  group_by(subset(df,ClosedDate != ""),Term,IncomeRange),
           total = length(LoanStatus),
           total_net_loss = sum(LP_NetPrincipalLoss),
           total_originated = sum(LoanOriginalAmount),
           loss_per_loan = total_net_loss/total,
           loss_rate = total_net_loss/total_originated)
 
-ggplot(subset(loss_across_income_range,IncomeRange !="Not displayed"),aes(IncomeRange,loss_rate,group=factor(Term),fill=factor(Term))) + 
+ggplot(subset(loss_across_income_range,IncomeRange !="Not displayed"),
+       aes(IncomeRange,loss_rate,group=factor(Term),fill=factor(Term))) + 
   geom_bar(stat="identity",position="dodge") + 
   ggtitle("Loss Rate by Income Range Across Term Size (12, 36, 60 month)") + 
   xlab("Income Range") + 
@@ -859,30 +997,44 @@ ggplot(subset(loss_across_income_range,IncomeRange !="Not displayed"),aes(Income
 
 ### Description Two
 
-Loss Rate falls for all groups. Variation in the loss rate across Income Ranges increases as Term size increases. Finally, for high-income borrowers (>$100,000) of 36/60 month loans, the loss rate is nearly the same. 
+Here, we see a grouped bar chart on the Loss Rate by Income Ranges, group by the Term length of the loans. As Income Range increases, the Loss Rate falls for every Term length. Additionally, the variation in the loss rate across Income Ranges increases as Term size increases. Holding Income Range constant, we see that Loss Rate falls as Term length increases.  One important caveat, for high-income borrowers (>$100,000) of 36/60 month loans, the loss rate is nearly the same, at around 22%.
 
 ### Plot Three
-```{r echo=FALSE, fig.width=15,fig.height=15, Plot_Three}
+
+```{r echo=FALSE, fig.width=15,fig.height=5, Plot_Three}
 df$LoanOriginationDateYear <- year(df$LoanOriginationDate)
-originated_by_state <- summarise(group_by(df,BorrowerState,LoanOriginationDateYear),
+originated_by_state <- summarise(
+  group_by(df,BorrowerState,LoanOriginationDateYear),
           total_originated = sum(LoanOriginalAmount),
           total_originated_log10 = log10(total_originated+1))
 
-originated_by_state$BorrowerStateFull <- tolower(state.name[match(originated_by_state$BorrowerState, state.abb)])
-dc <- dcast(data = originated_by_state,formula = BorrowerStateFull ~ LoanOriginationDateYear,fun.aggregate = mean,value.var = "total_originated_log10")
+originated_by_state$BorrowerStateFull <- tolower(
+  state.name[match(originated_by_state$BorrowerState, state.abb)])
+
+dc <- dcast(data = originated_by_state,
+            formula = BorrowerStateFull ~ LoanOriginationDateYear,
+            fun.aggregate = mean,
+            value.var = "total_originated_log10")
+
 dc[is.na(dc)] <- 0
 dc_m <- melt(dc,id=c("BorrowerStateFull"))
 
 states <- map_data("state")
 states$region <- tolower(states$region)
-df_state_count <- merge(dc_m,states,by.x = "BorrowerStateFull",by.y = "region",all.x=TRUE)
+df_state_count <- merge(dc_m,states,
+                        by.x = "BorrowerStateFull",
+                        by.y = "region",
+                        all.x=TRUE)
+
 names(df_state_count)[2] <- 'LoanOriginationYear'
 names(df_state_count)[3] <- 'LoanOriginationVolume_Log10'
 
-ggplot(subset(df_state_count,LoanOriginationYear %in% c(2006,2007,2008,2009,2010,2011,2012,2013)),aes(long,lat)) + 
+ggplot(subset(df_state_count,
+              LoanOriginationYear %in% c(2006,2007,2008,2009,2010,2011,2012,2013)),
+       aes(long,lat)) + 
   geom_polygon(aes(group = group,fill=LoanOriginationVolume_Log10))+
   coord_map("albers",  at0 = 45.5, lat1 = 29.5) + 
-  facet_grid(LoanOriginationYear~.) +
+  facet_grid(.~LoanOriginationYear) +
   ggtitle("Loans Origination Volume (log10 scaled) By State from 2009 - 2013")+ 
   theme(panel.background = element_blank(),  # remove panel background
         axis.ticks = element_blank(),
@@ -892,6 +1044,8 @@ ggplot(subset(df_state_count,LoanOriginationYear %in% c(2006,2007,2008,2009,2010
 ```
 
 ### Description Three
+
+The plot shows a series of heat maps of the USA, with the variable of interest being Loan Originations by Year.
 
 Excluding 2014 (do not have a full year's worth of data), prosper loans originations seem to increase across the US states over time. We see that as of 2013, there are no loans in North Dakota, Iowa and Maine. In the past, take 2008 for instance, there were loan originations in these states. In fact, according to this source (http://www.lendingmemo.com/lending-club-and-prosper-states/), 3 states are not open to p2p lending: North Dakota, Iowa and Maine. So, legislation has actually closed these states off from certain lending marketplaces. Aside from this, we can see that California, Texas, New York and Florida are the hotbeds of loan originations. It's no coincidence that these states also have the highest electoral counts. This is probably more so a testament to the large populations of these states, rather than the level of "p2p lending interest" in these regions (compared to others).
 
