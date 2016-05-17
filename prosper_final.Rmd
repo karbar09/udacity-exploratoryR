@@ -607,15 +607,15 @@ Debt to Income Ratio vs Loss Rate
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 
 ggplot(df,aes(DebtToIncomeRatio,LP_NetPrincipalLoss)) + 
-  geom_point() 
+  geom_point(alpha=0.05) 
 
 ggplot(subset(df,ClosedDate != ""),
        aes(DebtToIncomeRatio,LP_NetPrincipalLoss/LoanOriginalAmount)) + 
-  geom_point() 
+  geom_point(alpha=.05)
 
 ggplot(subset(df,ClosedDate != ""),
        aes(log10(DebtToIncomeRatio+1),LP_NetPrincipalLoss/LoanOriginalAmount)) + 
-  geom_point() 
+  geom_point(alpha=.05) 
 
 fit <- lm(
   formula= LP_NetPrincipalLoss/LoanOriginalAmount ~ log10(DebtToIncomeRatio+1),
@@ -632,7 +632,7 @@ What about the Loss Rate across: Loan Size, Term, BorrowerAPR
 ```{r, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
 
 ggplot(subset(df,ClosedDate != ""),aes(LoanOriginalAmount,LossRate)) + 
-  geom_point() 
+  geom_point(alpha=0.05) 
 
 cor(df$LoanOriginalAmount,df$LossRate)
 
@@ -805,12 +805,16 @@ loss_across_ci_range <- summarise(
           loss_per_loan = total_net_loss/total,
           loss_rate = total_net_loss/total_originated)
 
+
+loss_across_ci_range$CreditRange <- factor(loss_across_ci_range$CreditRange)
+lvls <- levels(loss_across_ci_range$CreditRange) 
 ggplot(loss_across_ci_range,aes(CreditRange,loss_rate)) + 
   geom_point(stat="identity",aes(size=log10(total_originated))) + 
-  ggtitle("Loss Rate across Credit/Income Range")+ 
+  ggtitle("Loss Rate across Credit/Income Range (Showing every 3rd tick on xaxis)")+ 
   facet_grid(.~IncomeRange) + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
-  scale_size(range=c(0,20)) 
+  scale_size(range=c(0,20)) +
+  scale_x_discrete(breaks=lvls[seq(1,length(lvls),by=3)])
 
 ```
 

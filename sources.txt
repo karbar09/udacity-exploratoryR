@@ -3,4 +3,4 @@
 3. Prosper Lending States: http://www.lendingmemo.com/lending-club-and-prosper-states/
 4. ggplot docs: http://docs.ggplot2.org/
 5. ggplot without axes/legends: http://stackoverflow.com/questions/6528180/ggplot2-plot-without-axes-legends-etc
-
+6. ggplot show every nth label: http://stackoverflow.com/questions/32278215/show-every-nth-row-name-in-ggplot2
